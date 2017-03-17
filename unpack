@@ -18,23 +18,35 @@ Show_usage() {
  printf "\n$warning        -a '*file*' Add only the update.zip update package to project directory$Tail"
  printf "\n$warning        -b Automatic decomposition of project files $Tail"
  printf "\n$warning        -c Clean up the cache file after the decomposition is complete$Tail\n"
- printf "\n$warning For example: unpack -a ~/update.zip -b -c \n automatically add the project and break the file, clean up the cache file \n$Tail"
- printf "\n$warning Note: When using the -a option alone or with other options: The parameters accepted by the tool can only be the absolute path of the file or the relative path to the file, and must contain parameters. \n$Tail"
+ printf "\n$warning For example: unpack -a ~/update.zip -b -c or unpack -a ~/update.zip -bc\n automatically add the project and break the file, clean up the cache file \n$Tail"
+ printf "\n$warning Note: When using the -a option alone or with other options: The parameters accepted by the tool can only be the absolute path of the file or the relative path to the file, and must contain parameters. -a and -c exist at the same time there is no meaning. \n$Tail"
 }
 add_file(){
-  cp $OPTARG $LocalPATH/update.zip 1>/dev/null 2>/dev/null | printf "$warning Copying $OPTARG to $LocalPATH/update.zip $Tail\n"
-  unzip $OPTARG -d $LocalPATH/TEMPDIR 1>/dev/null 2>/dev/null
+  cp $filedir $LocalPATH/update.zip 1>/dev/null 2>/dev/null | printf "$warning Copying $filedir to $LocalPATH/update.zip $Tail\n"
+  if [ "$Breakdownz" = "1" ]; then
+    Breakdown && return 0
+  fi
 }
 Breakdown() {
-echo "分解文件"
+Breakdownz=1
+  unzip $FILE -d $LocalPATH/TEMPDIR/
+  mv $LocalPATH/TEMPDIR/UPDATE.APP $LocalPATH/
+ if [ ! -x "$LocalPATH/splitupdate" ]; then
+   chmod 0755 $LocalPATH/splitupdate 1>/dev/null 2>/dev/null
+ fi
+  ./splitupdate UPDATE.APP
+  if [ "$Cleanup" = "1" ]; then
+  Cleanup && return 0
+ fi
 }
 Cleanup() {
-echo "清理文件"
+Cleanup=1
+rm -rf $LocalPATH/TEMPDIR $LocalPATH/update.zip $LocalPATH/UPDATE.APP
 }
 
-while getopts "a:bch" args
+while getopts "a:bch" arg
  do
-      case $args in
+      case $arg in
                 h)
                      Show_usage
         ;;
@@ -42,8 +54,10 @@ while getopts "a:bch" args
                      if [ ! -f "$OPTARG" ]; then
                        printf "$Failure $OPTARG: No such file or directory. Execute 'unpack -h' for more informations. $Tail\n"
                        exit 1
-                     fi
+                     else
+                     FILE="$OPTARG"
                      add_file
+                       fi
         ;;
                 b)
                      Breakdown
@@ -55,8 +69,7 @@ while getopts "a:bch" args
                      printf "$Failure unkonw argument. Execute 'unpack -h' for more informations.$Tail\n"
                      exit 1
         ;;
- esac
+  esac
 
-done
-
+ done
 
