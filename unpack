@@ -1,0 +1,62 @@
+#!/bin/bash
+# Added to automatically get the UPDATE.APP files script for *HUAWEI Telephone*
+# March 17, 2017, modified by gesangtome.
+trap "" SIGTSTP
+
+LocalPATH=$(dirname $(readlink -f "$0"))
+
+# Color control
+Normal="\033[1;36m"
+Failure="\033[0;31m"
+Tail="\033[0m"
+warning="\033[0;33m"
+
+Show_usage() {
+ printf "\n$Normal Huawei Telephone UPDATE.APP decomposition tool for Linux$Tail\n"
+ printf "$Normal     Added by gesangtome, https://github.com/gesangtome$Tail\n"
+ printf "\n$warning Usage: unpack --[options] [path]$Tail"
+ printf "\n$warning        -a '*file*' Add only the update.zip update package to project directory$Tail"
+ printf "\n$warning        -b Automatic decomposition of project files $Tail"
+ printf "\n$warning        -c Clean up the cache file after the decomposition is complete$Tail\n"
+ printf "\n$warning For example: unpack -a ~/update.zip -b -c \n automatically add the project and break the file, clean up the cache file \n$Tail"
+ printf "\n$warning Note: When using the -a option alone or with other options: The parameters accepted by the tool can only be the absolute path of the file or the relative path to the file, and must contain parameters. \n$Tail"
+}
+add_file(){
+  cp $OPTARG $LocalPATH/update.zip 1>/dev/null 2>/dev/null | printf "$warning Copying $OPTARG to $LocalPATH/update.zip $Tail\n"
+  unzip $OPTARG -d $LocalPATH/TEMPDIR 1>/dev/null 2>/dev/null
+}
+Breakdown() {
+echo "分解文件"
+}
+Cleanup() {
+echo "清理文件"
+}
+
+while getopts "a:bch" args
+ do
+      case $args in
+                h)
+                     Show_usage
+        ;;
+                a)
+                     if [ ! -f "$OPTARG" ]; then
+                       printf "$Failure $OPTARG: No such file or directory. Execute 'unpack -h' for more informations. $Tail\n"
+                       exit 1
+                     fi
+                     add_file
+        ;;
+                b)
+                     Breakdown
+        ;;
+                c)
+                     Cleanup
+        ;;
+                ?)
+                     printf "$Failure unkonw argument. Execute 'unpack -h' for more informations.$Tail\n"
+                     exit 1
+        ;;
+ esac
+
+done
+
+
